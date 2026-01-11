@@ -2,10 +2,6 @@
 
 A mod for adding custom biomes to TerraFirmaCraft using config + datapacks.
 
-## Quick Start
-
-### For Modpack Makers
-
 This mod is intentionally split into three parts:
 
 
@@ -17,8 +13,6 @@ This mod is intentionally split into three parts:
 2. Add the placement rule (datapack): `data/<namespace>/tfcbiomegen/biome_placement/<path>.json`
 3. Add the biome JSON (datapack): `data/<namespace>/worldgen/biome/<name>.json`
 4. Restart Minecraft (**required**) (extensions load at startup)
-
-**Modpack convention:** modpacks typically use the built-in `tfcbiomegen` namespace for both biome ids and placement rules.
 
 **Example (extension config):** `config/tfcbiomegen/biomes/tropical_savanna.json`
 ```json
