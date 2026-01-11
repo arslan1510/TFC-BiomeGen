@@ -1,6 +1,6 @@
 # TFC-BiomeGen
 
-Adds **custom biomes** to TerraFirmaCraft
+Add **custom biomes** to TerraFirmaCraft
 
 ## Quickstart (modpacks)
 
