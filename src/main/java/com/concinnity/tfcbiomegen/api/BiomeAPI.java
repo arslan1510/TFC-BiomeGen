@@ -16,7 +16,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.function.LongFunction;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -78,13 +77,11 @@ public final class BiomeAPI {
         }
         ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
 
-        // Build BiomeExtension immediately (like TFC does in static blocks)
         BiomeExtension extension = builder.build(key);
 
-        // Store for later layer ID lookup
+ 
         BUILT_EXTENSIONS.put(id, extension);
 
-        // Register the already-built extension
         return extensionReg.register(name, () -> extension);
     }
 
@@ -119,7 +116,6 @@ public final class BiomeAPI {
         return List.copyOf(RULES);
     }
 
-    // Delegated parse methods for convenience
     public static LongFunction<Noise2D> parseHeightmap(String name) {
         return BiomeParsers.parseHeightmap(name);
     }
@@ -154,7 +150,7 @@ public final class BiomeAPI {
         public RuleBuilder rarity(float probability) { this.rarity = probability; return this; }
 
         public void register() {
-            // Store deferred rule - layer ID will be resolved during worldgen
+           
             JAVA_DEFERRED_RULES.add(new DeferredRule(biomeId, replacesLayerId, minTemp, maxTemp, minRainfall, maxRainfall, rarity));
             RULES_DIRTY = true;
             TFCBiomeGen.LOGGER.info("Registered placement rule for {} (rarity={})", biomeId, rarity);
@@ -172,53 +168,14 @@ public final class BiomeAPI {
     ) {}
 
     private static final List<DeferredRule> JAVA_DEFERRED_RULES = new CopyOnWriteArrayList<>();
-    private static final List<DeferredRule> DATAPACK_DEFERRED_RULES = new CopyOnWriteArrayList<>();
-
-    /**
-     * Replace all datapack-provided placement rules.
-     * This is intended to be called by a server datapack reload listener.
-     */
-    public static void setDatapackPlacements(Map<ResourceLocation, BiomePlacementRule> placementsByFileId) {
-        synchronized (RULE_LOCK) {
-            DATAPACK_DEFERRED_RULES.clear();
-            if (placementsByFileId != null) {
-                for (var entry : placementsByFileId.entrySet()) {
-                    final ResourceLocation fileId = entry.getKey();
-                    final BiomePlacementRule placement = entry.getValue();
-                    if (fileId == null || placement == null) continue;
-
-                    final ResourceLocation biomeId = placement.biome().orElse(fileId);
-                    final int replacesLayerId = placement.replacesLayer()
-                        .map(BiomeAPI::parseLayer)
-                        .map(layer -> layer == null ? -1 : layer.id())
-                        .orElse(-1);
-
-                    DATAPACK_DEFERRED_RULES.add(new DeferredRule(
-                        biomeId,
-                        replacesLayerId,
-                        placement.minTemp(),
-                        placement.maxTemp(),
-                        placement.minRainfall(),
-                        placement.maxRainfall(),
-                        placement.rarity()
-                    ));
-                }
-            }
-            RULES_DIRTY = true;
-        }
-    }
 
     private static void rebuildRulesIfDirty() {
         if (!RULES_DIRTY) return;
         synchronized (RULE_LOCK) {
             if (!RULES_DIRTY) return;
 
-            final List<DeferredRule> ordered = new ArrayList<>(JAVA_DEFERRED_RULES.size() + DATAPACK_DEFERRED_RULES.size());
-            ordered.addAll(JAVA_DEFERRED_RULES);
-            ordered.addAll(DATAPACK_DEFERRED_RULES);
-
             RULES.clear();
-            for (DeferredRule deferred : ordered) {
+            for (DeferredRule deferred : JAVA_DEFERRED_RULES) {
                 try {
                     BiomeExtension extension = BUILT_EXTENSIONS.get(deferred.biomeId);
                     if (extension == null) {

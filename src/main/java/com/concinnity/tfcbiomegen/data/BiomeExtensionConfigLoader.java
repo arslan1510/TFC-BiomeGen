@@ -3,6 +3,7 @@ package com.concinnity.tfcbiomegen.data;
 import com.concinnity.tfcbiomegen.TFCBiomeGen;
 import com.concinnity.tfcbiomegen.api.BiomeAPI;
 import com.concinnity.tfcbiomegen.api.BiomeExtensionConfig;
+import com.concinnity.tfcbiomegen.api.BiomeEnums;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -82,7 +83,7 @@ public final class BiomeExtensionConfigLoader {
         var surface = BiomeAPI.parseSurface(definition.surface());
         var riverBlend = BiomeAPI.parseRiverBlend(definition.riverBlend());
 
-        BiomeAPI.registerBiome(
+        final var holder = BiomeAPI.registerBiome(
             namespace,
             name,
             heightmap,
@@ -90,6 +91,20 @@ public final class BiomeExtensionConfigLoader {
             riverBlend,
             definition.spawnable()
         );
+
+        final var rule = BiomeAPI.place(holder)
+            .temperature(definition.minTemp(), definition.maxTemp())
+            .rainfall(definition.minRainfall(), definition.maxRainfall())
+            .rarity(definition.rarity());
+
+        final BiomeEnums.Layer layer = definition.replacesLayer()
+            .map(BiomeAPI::parseLayer)
+            .orElse(null);
+        if (layer != null) {
+            rule.replaces(layer);
+        }
+
+        rule.register();
     }
 }
 

@@ -1,33 +1,22 @@
 # TFC-BiomeGen
 
-A mod for adding custom biomes to TerraFirmaCraft using config + datapacks.
+Adds **custom biomes** to TerraFirmaCraft
 
-This mod is intentionally split into three parts:
+## Quickstart (modpacks)
+
+1. **Config (extension + placement)**: add `config/tfcbiomegen/biomes/<name>.json`
+2. **Biome JSON must exist**: add `data/<namespace>/worldgen/biome/<name>.json`
 
 
-- **TFC integration** (BiomeExtension: terrain/surface/river blend): provided via **config** at `config/tfcbiomegen/biomes/<name>.json`
-- **Placement rules** (where the biome spawns): provided via **datapack** at `data/<namespace>/tfcbiomegen/biome_placement/<path>.json`
-- **Biome content** (vanilla biome JSON): provided via **datapack** at `data/<namespace>/worldgen/biome/<name>.json`
+### Example config (`config/tfcbiomegen/biomes/tropical_savanna.json`)
 
-1. Add the TFC extension config (config): `config/tfcbiomegen/biomes/<name>.json`
-2. Add the placement rule (datapack): `data/<namespace>/tfcbiomegen/biome_placement/<path>.json`
-3. Add the biome JSON (datapack): `data/<namespace>/worldgen/biome/<name>.json`
-4. Restart Minecraft (**required**) (extensions load at startup)
-
-**Example (extension config):** `config/tfcbiomegen/biomes/tropical_savanna.json`
 ```json
 {
   "heightmap": "plains",
   "surface": "normal",
   "river_blend": "floodplain",
-  "spawnable": true
-}
-```
+  "spawnable": true,
 
-**Example (placement rule):** `data/tfcbiomegen/tfcbiomegen/biome_placement/tropical_savanna.json` (targets `tfcbiomegen:tropical_savanna` by default)
-
-```json
-{
   "replaces_layer": "plains",
   "temperature": {"min": 18.0, "max": 28.0},
   "rainfall": {"min": 100.0, "max": 250.0},
@@ -35,118 +24,117 @@ This mod is intentionally split into three parts:
 }
 ```
 
-**Example (biome JSON):** `data/tfcbiomegen/worldgen/biome/tropical_savanna.json`
+## Where do I put datapack files (`data/<namespace>/...`)?
+
+Rule of thumb: **the biome id determines the `data/<namespace>/...` folder**.
+
+- **If you’re using this mod’s config (modpacks)**:
+  - Config filename `config/tfcbiomegen/biomes/foo.json` registers biome id **`tfcbiomegen:foo`**
+  - So your biome JSON goes in: `data/tfcbiomegen/worldgen/biome/foo.json`
+- **If you’re a mod adding a biome via Java API**:
+  - If you register biome id **`yourmodid:custom_biome`**
+  - Put biome JSON in: `data/yourmodid/worldgen/biome/custom_biome.json`
+- **Do NOT put your new biome JSON under `data/tfc/...`**
+  - `data/tfc/...` is for TerraFirmaCraft’s own resources, and only makes sense if you intentionally want to **override TFC’s datapack content**.
+
+## Config reference (`config/tfcbiomegen/biomes/*.json`)
+
+### Fields
+- **`heightmap`** (required): string
+- **`surface`** (required): string
+- **`river_blend`** (required): string
+- **`spawnable`** (optional, default `false`): boolean
+
+- **`replaces_layer`** (optional): string
+- **`temperature`** (optional): `{ "min": float, "max": float }` (default `-20..30`)
+- **`rainfall`** (optional): `{ "min": float, "max": float }` (default `0..500`)
+- **`rarity`** (optional, default `0.01`): float in `[0.0, 1.0]`
+
+### Allowed values / parsing
+- **General**: parsing is **case-insensitive**.
+- **`heightmap`**: accepts these names (also accepts an optional `tfc:` prefix):
+  - `plains`, `hills`, `lowlands`, `low_canyons`, `rolling_hills`, `highlands`, `badlands`, `plateau`, `canyons`, `mountains`, `old_mountains`, `oceanic_mountains`, `dunes`, `flats`, `salt_flats`
+
+- **`river_blend`**: maps to TFC river blend types:
+  - `floodplain`, `banked`, `tall_banked`, `wide`, `wide_deep`, `canyon`, `tall_canyon`, `talus`, `terraces`, `cave`
+  
+- **`surface`**: uses `BiomeEnums.Surface` enum names (see `src/main/java/com/concinnity/tfcbiomegen/api/BiomeEnums.java`)
+  - Examples: `normal`, `rocky`, `lowlands`, `dunes`, `grassy_dunes`, `river`, `shore_sandy`, `ice_sheet_normal`, `badlands_normal`
+
+- **`replaces_layer`**: uses `BiomeEnums.Layer` enum names; also accepts optional `tfc:` prefix
+  - Examples: `plains`, `hills`, `lowlands`, `mountains`, `ocean`, `river`
+
+### Biome id source
+This mod uses the **config filename** as the biome id path:
+- `config/tfcbiomegen/biomes/foo.json` → `tfcbiomegen:foo`
+
+## Gotchas
+
+- **Biome JSON is required**: if you register `tfcbiomegen:<name>` via config/API, you must also provide the biome at `data/tfcbiomegen/worldgen/biome/<name>.json` (or a datapack biome with the same id). Missing biome JSON can crash world creation with “Registry is already frozen … biome …”.
+- **Restart required**: config is read at startup.
+- **Hard limit**: TFC biome layers have a fixed **128 total layer ID** limit; exceeding it means extra biomes can’t be allocated/placed.
+
+## Adding features / spawns / carvers (datapack biome JSON)
+
+These live in your biome file at `data/<namespace>/worldgen/biome/<name>.json` (fields like `features`, `spawners`, `spawn_costs`, `carvers`).
+
+Useful TFC reference folders (from the TFC datapack):
+- Placed-feature tags: `data/tfc/tags/worldgen/placed_feature/in_biome/` (e.g. `#tfc:in_biome/veins`)
+- Configured carvers: `data/tfc/worldgen/configured_carver/` (e.g. `tfc:cave`, `tfc:canyon`)
+- Biome JSON examples: `data/tfc/worldgen/biome/*.json`
+
+### Examples
+
+Minimal biome JSON skeleton reusing TFC tags + carvers:
+
 ```json
 {
+  "has_precipitation": true,
   "temperature": 1.2,
   "downfall": 0.3,
   "effects": {
     "fog_color": 12638463,
     "sky_color": 7907327,
     "water_color": 4159204,
-    "water_fog_color": 329011,
-    "grass_color_modifier": "none"
+    "water_fog_color": 329011
   },
-  "spawners": {},
-  "spawn_costs": {},
   "carvers": {
-    "air": [
-      "tfc:cave",
-      "tfc:canyon"
-    ]
+    "air": ["tfc:cave", "tfc:canyon"]
   },
   "features": [
+    ["#tfc:in_biome/erosion"],
+    ["#tfc:in_biome/all_lakes"],
+    [],
+    ["#tfc:in_biome/underground_structures"],
+    ["#tfc:in_biome/surface_structures"],
+    ["#tfc:in_biome/strongholds"],
+    ["#tfc:in_biome/veins"],
+    ["#tfc:in_biome/underground_decoration"],
     [],
     [],
-    [],
-    [
-      "#tfc:in_biome/veins"
-    ],
-    [],
-    [],
-    [],
-    [
-      "#tfc:in_biome/surface_structures"
-    ],
-    [],
-    [
-      "#tfc:in_biome/plant_decoration"
-    ],
-    [
-      "#tfc:in_biome/top_layer_modification"
-    ]
-  ]
+    ["#tfc:in_biome/top_layer_modification"]
+  ],
+  "spawners": {},
+  "spawn_costs": {}
 }
 ```
 
-**Important:** the biome id is derived from the config filename:
-- `config/tfcbiomegen/biomes/tropical_savanna.json` → `tfcbiomegen:tropical_savanna`
-- If other mods use the `tfcbiomegen` namespace, use a unique filename or your own namespace (e.g. `config/mypack/biomes/savanna.json` → `mypack:savanna`)
-
-**Hard limitation:** TFC biome layers are backed by a fixed-size array. If too many mods/packs add biomes, you can hit the **128 total layer ID** limit and extra biomes will not be placed.
-
-### TFC references
-Biome JSON (`data/<namespace>/worldgen/biome/*.json`) can (and usually should) reference TFC’s existing carvers/features via IDs and tags.
-
-- **carvers**: `data/tfc/worldgen/configured_carver/` (e.g. `tfc:cave`, `tfc:canyon`)
-- **placed-feature tags**: `data/tfc/tags/worldgen/placed_feature/in_biome/` (e.g. `#tfc:in_biome/veins`)
-- **examples**: `data/tfc/worldgen/biome/*.json`
-
-TFC docs: [TerraFirmaCraft documentation](https://terrafirmacraft.github.io/Documentation/).
-
----
-
-## Config + Data
-
-### Extension config (`config/tfcbiomegen/biomes/<name>.json`)
-- **`heightmap`**: string (required)
-- **`surface`**: string (required)
-- **`river_blend`**: string (required)
-- **`spawnable`**: boolean (optional, default `false`)
-
-### Placement rule (`data/<namespace>/tfcbiomegen/biome_placement/<path>.json`)
-- **`biome`**: string (optional) explicit biome id to place; default is the file id (`<namespace>:<path>`)
-- **`replaces_layer`**: string (optional) only replace a specific TFC layer (e.g. `plains`)
-- **`temperature`**: `{ "min": float, "max": float }` (optional)
-- **`rainfall`**: `{ "min": float, "max": float }` (optional)
-- **`rarity`**: float in `[0.0, 1.0]` (optional, default `0.01`)
-
-### Allowed values (enums / parsers)
-Parsing is **case-insensitive**. Heightmaps and layers also accept an optional `tfc:` prefix.
-
-- **`heightmap`**: selects a TFC terrain noise factory.
-  - TFC collections of biome noise factories in `net.dries007.tfc.world.biome.BiomeNoise`.
-  - This mod exposes a curated subset via `BiomeParsers.parseHeightmap`: `plains`, `hills`, `lowlands`, `low_canyons`, `rolling_hills`, `highlands`, `badlands`, `plateau`, `canyons`, `mountains`, `old_mountains`, `oceanic_mountains`, `dunes`, `flats`, `salt_flats`.
-
-- **`river_blend`**: selects a TFC river valley/blend shape.
-  - Values map to `net.dries007.tfc.world.river.RiverBlendType`: `floodplain`, `banked`, `tall_banked`, `wide`, `wide_deep`, `canyon`, `tall_canyon`, `talus`, `terraces`, `cave`.
-
-- **`surface`**: selects a TFC surface builder factory (top blocks + shore/ice/badlands patterns).
-  - Values map to `BiomeEnums.Surface` (backed by TFC `SurfaceBuilderFactory`). See `src/main/java/com/concinnity/tfcbiomegen/api/BiomeEnums.java`.
-
-- **`replaces_layer`**: filters placement to positions where TFC selected a specific layer id in `ChooseBiomes`.
-  - Values map to `BiomeEnums.Layer` (backed by TFC `TFCLayers`). See `src/main/java/com/concinnity/tfcbiomegen/api/BiomeEnums.java`.
-
----
-
-## For Mod Developers
-
-### Java API
+## For Mod Developers (Java API)
 
 ```java
 // In the mod constructor
 BiomeAPI.init(modEventBus, "yourmodid");
 
-// Register a biome
+// Register a biome extension (must match your biome JSON id)
 var biome = BiomeAPI.registerBiome(
     "yourmodid", "custom_biome",
-    BiomeAPI.parseHeightmap("mountains"),  // Or custom: seed -> BiomeNoise.mountains(seed, 10, 70)
+    BiomeAPI.parseHeightmap("mountains"),
     BiomeEnums.Surface.NORMAL,
     BiomeEnums.RiverBlend.FLOODPLAIN,
-    true  // spawnable
+    true
 );
 
-// Place it in the world
+// Place it (later rules override earlier ones if multiple match)
 BiomeAPI.place(biome)
     .replaces(BiomeEnums.Layer.PLAINS)
     .temperature(15f, 25f)
@@ -155,57 +143,12 @@ BiomeAPI.place(biome)
     .register();
 ```
 
-**Mod developer convention:** mods typically use their own namespace (e.g. `examplemod`).
-
-The mod provides the biome JSON at `data/examplemod/worldgen/biome/<name>.json`, and the extension is registered as `examplemod:<name>` via `BiomeAPI.registerBiome(...)`.
-
-If modpack authors need to tweak placement without code, they can ship datapack rules at `data/examplemod/tfcbiomegen/biome_placement/<path>.json`.
-
-**Important (TFC requirement):** the biome ID and the `BiomeExtension` ID must match.
-
-- Biome: `yourmodid:custom_biome` (datapack JSON at `data/yourmodid/worldgen/biome/custom_biome.json`)
-- BiomeExtension: `yourmodid:custom_biome` (registered via this API)
-
-**Helper Methods:**
-- `BiomeAPI.parseHeightmap(String)` - Get TFC heightmap by name
-- `BiomeAPI.parseSurface(String)` - Get surface enum from name
-- `BiomeAPI.parseRiverBlend(String)` - Get river blend from name
-- `BiomeAPI.parseLayer(String)` - Get layer enum from name
-
----
-
-## Technical Details
-
-### How It Works
-
-1. **Registration**: Biomes are registered to TFC's `BiomeExtension` registry using TFC's `BiomeBuilder`
-2. **Layer Allocation**: TFC assigns each biome a unique integer layer ID
-3. **TFC Worldgen**: TFC generates climate data (temp/rainfall) and picks base biomes via `ChooseBiomes`
-4. **Injection**: Mixin runs **after** TFC, applies your placement rules, replaces matching points
-5. **Result**: Custom biomes integrated into TFC worldgen
-
-### Climate Filter Logic
-
-For each world position, your biome spawns if:
-1. `replaces_layer` matches (if specified) **AND**
-2. Temperature is within your range **AND**
-3. Rainfall is within your range **AND**
-4. Random roll < `rarity`
-
-**Example:** `rarity: 0.05` = 5% chance to replace matching positions.
-
-### Rule priority
-If multiple rules match the same position, **later rules override earlier ones** (rules are evaluated in registration order).
-
----
+**TFC requirement**: the biome id and the `BiomeExtension` id must match (e.g. `yourmodid:custom_biome` for both).
 
 ## Requirements
 
 - Minecraft **1.21.1**
-- NeoForge **21.1.218+**
 - TerraFirmaCraft **4.0.0+**
-
----
 
 ## License
 
