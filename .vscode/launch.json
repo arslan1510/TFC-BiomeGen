@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Client",
+      "presentation": {
+        "group": "Mod Development - TFC-BiomeGen",
+        "order": 0
+      },
+      "projectName": "TFC-BiomeGen",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/build/moddev/clientRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtfcbiomegen%%/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run/client",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Server",
+      "presentation": {
+        "group": "Mod Development - TFC-BiomeGen",
+        "order": 1
+      },
+      "projectName": "TFC-BiomeGen",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/build/moddev/serverRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtfcbiomegen%%/home/aleph/Desktop/dev/minecraft/TFC-BiomeGen/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run/server",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    }
+  ]
+}

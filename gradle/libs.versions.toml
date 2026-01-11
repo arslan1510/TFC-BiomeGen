@@ -1,0 +1,20 @@
+[versions]
+# Minecraft and NeoForge
+minecraft = "1.21.1"
+neoforge = "21.1.218"
+parchment = "2024.11.17"
+parchmentMinecraft = "1.21.1"
+
+# Dependencies
+# TerraFirmaCraft
+tfc = "3.2.0"
+tfcFileId = "7343990"
+patchouli = "1.21.1-92-NEOFORGE"
+
+[libraries]
+# TerraFirmaCraft
+tfc = { group = "curse.maven", name = "terrafirmacraft-302973", version.ref = "tfcFileId" }
+patchouli = { group = "vazkii.patchouli", name = "Patchouli", version.ref = "patchouli" }
+
+[plugins]
+neoforge-moddev = { id = "net.neoforged.moddev", version = "2.0.136" }

@@ -1,0 +1,28 @@
+{
+  "has_precipitation": true,
+  "temperature": 0.8,
+  "downfall": 0.3,
+  "effects": {
+    "fog_color": 12638463,
+    "sky_color": 7907327,
+    "water_color": 4159204,
+    "water_fog_color": 329011
+  },
+  "carvers": {
+    "air": [
+      "tfc:cave",
+      "tfc:canyon"
+    ]
+  },
+  "features": [
+    "#tfc:in_biome/erosion",
+    "#tfc:in_biome/all_lakes",
+    "#tfc:in_biome/soil_discs/plains",
+    "#tfc:in_biome/veins",
+    "#tfc:in_biome/large_features/plains",
+    "#tfc:in_biome/surface_decoration/plains"
+  ],
+  "spawners": {},
+  "creature_spawn_probability": 0.1,
+  "spawn_costs": {}
+}

@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.concinnity.tfcbiomegen.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "tfcbiomegen.refmap.json",
+  "mixins": [
+    "ChooseBiomesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

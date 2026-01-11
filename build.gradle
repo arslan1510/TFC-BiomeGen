@@ -1,0 +1,166 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.neoforge.moddev)
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+base {
+    archivesName = "${mod_name}-${libs.versions.minecraft.get()}"
+    version = project.mod_version
+    group = project.mod_group_id
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.terraformersmc.com/' }
+        }
+        filter { includeGroup 'dev.emi' }
+    }
+    exclusiveContent {
+        forRepositories(
+            maven { url = 'https://maven.blamejared.com/' },
+            maven { url = 'https://modmaven.k-4u.nl' }
+        )
+        forRepository {
+            maven { url = 'https://maven.blamejared.com/' }
+        }
+        filter {
+            includeGroup 'mezz.jei'
+            includeGroup 'vazkii.patchouli'
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.k-4u.nl/' }
+        }
+        filter { includeGroup 'mcjty.theoneprobe' }
+    }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://www.cursemaven.com' }
+        }
+        filter { includeGroup 'curse.maven' }
+    }
+}
+
+// Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = libs.versions.neoforge.get()
+    validateAccessTransformers = true
+
+    parchment {
+        minecraftVersion = libs.versions.minecraft
+        mappingsVersion = libs.versions.parchment
+    }
+
+    runs {
+        configureEach {
+            systemProperty 'neoforge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+
+            // Only JBR allows enhanced class redefinition, so ignore the option for any other JDKs
+            jvmArgument '-XX:+IgnoreUnrecognizedVMOptions'
+            jvmArgument '-XX:+AllowEnhancedClassRedefinition'
+            jvmArgument '-ea'
+        }
+
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+
+        server {
+            server()
+            gameDirectory = file('run/server')
+            programArgument '--nogui'
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+/**
+ * Sets up a dependency configuration called 'localRuntime'.
+ * This configuration should be used instead of 'runtimeOnly' to declare
+ * a dependency that will be present for runtime testing but that is
+ * "optional", meaning it will not be pulled by dependents of this mod.
+ */
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    // TFC and its dependencies
+    implementation libs.tfc
+    implementation libs.patchouli
+}
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def modReplacementProperties = [
+        'mod_id'                : project.mod_id,
+        'mod_name'              : project.mod_name,
+        'mod_version'           : project.mod_version,
+        'mod_license'           : project.mod_license,
+        'mod_authors'           : project.mod_authors,
+        'mod_description'       : project.mod_description,
+        'minecraft_version_range': "[${libs.versions.minecraft.get()}]",
+        'loader_version_range'  : '[1,)',
+        'neo_version'           : libs.versions.neoforge.get(),
+        'neo_version_range'     : "[${libs.versions.neoforge.get()},)",
+        'tfc_version_range'     : "[${libs.versions.tfc.get()},)"
+    ]
+    inputs.properties modReplacementProperties
+    expand modReplacementProperties
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+// Example configuration to allow publishing using the maven-publish plugin
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+
+        excludeDirs.addAll files('run', '.gradle', '.idea')
+    }
+}
+
+tasks.named('neoForgeIdeSync') {
+    dependsOn generateModMetadata
+}

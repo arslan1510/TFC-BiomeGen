@@ -1,0 +1,7 @@
+{
+  "replaces_layer": "plains",
+  "temperature": { "min": 18.0, "max": 28.0 },
+  "rainfall": { "min": 100.0, "max": 250.0 },
+  "rarity": 0.9
+}
+
