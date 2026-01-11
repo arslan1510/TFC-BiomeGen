@@ -1,7 +1,0 @@
-{
-  "replaces_layer": "mountains",
-  "temperature": { "min": -5.0, "max": 10.0 },
-  "rainfall": { "min": 150.0, "max": 450.0 },
-  "rarity": 0.9
-}
-
