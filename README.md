@@ -59,7 +59,7 @@ TFC docs: [TerraFirmaCraft documentation](https://terrafirmacraft.github.io/Docu
 
 ---
 
-## Config / datapack reference (minimal)
+## Config + Data
 
 ### Extension config (`config/tfcbiomegen/biomes/<name>.json`)
 - **`heightmap`**: string (required)
