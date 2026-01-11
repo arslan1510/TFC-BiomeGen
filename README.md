@@ -42,9 +42,52 @@ This mod is intentionally split into three parts:
 ```
 
 **Example (biome JSON):** `data/tfcbiomegen/worldgen/biome/tropical_savanna.json`
+```json
+{
+  "temperature": 1.2,
+  "downfall": 0.3,
+  "effects": {
+    "fog_color": 12638463,
+    "sky_color": 7907327,
+    "water_color": 4159204,
+    "water_fog_color": 329011,
+    "grass_color_modifier": "none"
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {
+    "air": [
+      "tfc:cave",
+      "tfc:canyon"
+    ]
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [
+      "#tfc:in_biome/veins"
+    ],
+    [],
+    [],
+    [],
+    [
+      "#tfc:in_biome/surface_structures"
+    ],
+    [],
+    [
+      "#tfc:in_biome/plant_decoration"
+    ],
+    [
+      "#tfc:in_biome/top_layer_modification"
+    ]
+  ]
+}
+```
 
 **Important:** the biome id is derived from the config filename:
 - `config/tfcbiomegen/biomes/tropical_savanna.json` → `tfcbiomegen:tropical_savanna`
+- If other mods use the `tfcbiomegen` namespace, use a unique filename or your own namespace (e.g. `config/mypack/biomes/savanna.json` → `mypack:savanna`)
 
 **Hard limitation:** TFC biome layers are backed by a fixed-size array. If too many mods/packs add biomes, you can hit the **128 total layer ID** limit and extra biomes will not be placed.
 
